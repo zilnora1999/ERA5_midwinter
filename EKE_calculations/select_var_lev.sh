@@ -1,5 +1,4 @@
 #prepare data to high-pass filter U and V   
-#cdo highpass,365/10 -del29feb UV_$year UV_highpass_$year
 PATH=/net/ch4/atmcirc/zilnora/era5_midwinter/data/EKE_calculations/
 
 for year in {1996..2022}

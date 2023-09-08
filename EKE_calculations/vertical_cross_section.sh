@@ -1,4 +1,4 @@
-
+#calculate vertical cross-section
 PATH=/net/ch4/atmcirc/zilnora/era5_midwinter/data/EKE_calculations/
 
 for year in {1980..2022}

@@ -1,3 +1,4 @@
+#split into months to later combine every month separately
 #-P 8 paralellises
 PATH=/net/ch4/atmcirc/zilnora/era5_midwinter/data/EKE_calculations/
 
