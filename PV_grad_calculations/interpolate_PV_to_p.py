@@ -10,7 +10,7 @@ from metpy.units import units
 from metpy.calc import potential_temperature
 from metpy.interpolate import interpolate_1d
 
-
+units.define('pvu = 1e-6 m^2 s^-1 K kg^-1')
 #read input files
 parser = argparse.ArgumentParser()                                               
 
@@ -22,24 +22,29 @@ args = parser.parse_args()
 df1=xr.open_dataset(args.file1)
 df2=xr.open_dataset(args.file2)
 
-#df1=xr.open_dataset('/net/ch4/atmcirc/zilnora/era5_midwinter/data/netcdf_filtering/1980/EKE_198001.nc')
-#df2=xr.open_dataset('/net/thermo/atmosdyn/era5/cdf/1980/01/Z19800101_00')
+df1=xr.open_dataset('/net/ch4/atmcirc/zilnora/era5_midwinter/data/PV_gradient_computations/1980/PV19800101_00')
+df2=xr.open_dataset('/net/thermo/atmosdyn/era5/cdf/1980/01/Z19800101_00')
 
-levs=df1.plev.values
+levs=df1.TH.values
 lats=df1.lat.values
 lons=df1.lon.values
+plevels=df2.plev.values
 
 #interpolate to TH-levels
-EKE=df1.EKE.values[0]
-TH_on_p_levels=potential_temperature(np.transpose(np.tile(df2.plev.values,(len(lons),len(lats),1)))*units.Pa,df2.T.values*units.K).magnitude[0]
-TH_levels=np.arange(320,342,2)
+PV=df1.PV.values[0]
+PV_filtered=df1.PV_filtered.values[0]
+dPV_filtered=df1.dPV_filtered.values[0]
+TH_on_p_levels=potential_temperature(np.transpose(np.tile(plevels,(len(lons),len(lats),1)))*units.Pa,df2.T.values*units.K).magnitude[0]
+p_levels=np.array([100,200,250,300,400,500,600,700,800,850,900])*100
 
+#interpolate p to TH_levels (needed for interpolation of PV to TH)
+levs_new=np.reshape(np.repeat(np.repeat(plevels,len(lons)),len(lats)),(len(p_levels),len(lats),len(lons)))
 
-levs_new=np.reshape(np.repeat(np.repeat(levs,len(lons)),len(lats)),(len(levs),len(lats),len(lons)))
+p_on_TH_levels = interpolate_1d(levs*units.K,TH_on_p_levels*units.K, levs_new*units.Pa, axis=0)
 
+#interpolate PV/filtered_PV/grad_filtered_PV to pressure levels
+PV_field = interpolate_1d(p_levels*units.Pa,p_on_TH_levels*units.Pa, PV*units.pvu, axis=0)
 
-EKE_field = interpolate_1d(TH_levels*units.K,TH_on_p_levels*units.K, EKE*units('m^2/s^2'), axis=0)
-levs_interp = interpolate_1d(TH_levels*units.K,TH_on_p_levels*units.K, levs_new, axis=0)
 
 
 #write netcdf file
